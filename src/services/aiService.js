@@ -3,15 +3,15 @@ import { streamRefinement as apiRefinePrompt, validatePromptContent as apiValida
 import { handleApiError } from '@/utils/errorHandler';
 
 /**
- * Generates the initial code prompt from an image.
- * @param {object} payload - The data required for prompt generation.
- * @param {string} payload.imageBase64 - The base64 encoded image.
- * @param {string} payload.appType - The application type (e.g., 'web').
- * @param {number} payload.temperature - The generation temperature.
- * @param {string} payload.framework - The selected frontend framework.
- * @param {string} payload.componentLibrary - The component library to use.
- * @param {string|null} payload.customSystemPrompt - An optional custom system prompt.
- * @returns {Promise<ReadableStream>} A promise that resolves to the stream from the API.
+ * 生成初始代码 Prompt（从图片和表单配置）
+ * @param {object} payload - 生成参数
+ * @param {string} payload.imageBase64 - 图片 base64
+ * @param {string} payload.appType - 应用类型
+ * @param {number} payload.temperature - 生成温度
+ * @param {string} payload.framework - 前端框架
+ * @param {string} payload.componentLibrary - 组件库
+ * @param {string|null} payload.customSystemPrompt - 自定义系统提示词
+ * @returns {Promise<ReadableStream>} API 返回的流
  */
 export const generateInitialPrompt = async (payload) => {
   try {
@@ -29,16 +29,17 @@ export const generateInitialPrompt = async (payload) => {
 };
 
 /**
- * Refines an existing prompt through a conversational exchange.
- * @param {object} payload - The data for the conversational refinement.
- * @param {string} payload.currentFullPrompt - The base prompt to be refined.
- * @param {Array} payload.history - The conversation history.
- * @param {string} payload.userTextMessage - The user's latest message.
- * @param {string|null} payload.imageBase64 - An optional new image for this turn.
- * @param {number} payload.temperature - The generation temperature.
- * @param {string} payload.framework - The selected frontend framework.
- * @param {string} payload.componentLibrary - The component library.
- * @returns {Promise<ReadableStream>} A promise that resolves to the stream from the API.
+ * 对现有 Prompt 进行对话式优化
+ * @param {object} payload - 优化参数
+ * @param {string} payload.currentFullPrompt - 当前完整 Prompt
+ * @param {Array} payload.history - 聊天历史
+ * @param {string} payload.userTextMessage - 用户输入
+ * @param {string|null} payload.imageBase64 - 可选新图片
+ * @param {number} payload.temperature - 生成温度
+ * @param {string} payload.framework - 前端框架
+ * @param {string} payload.componentLibrary - 组件库
+ * @param {boolean} payload.isContinuation - 是否为续写
+ * @returns {Promise<ReadableStream>} API 返回的流
  */
 export const refinePromptConversationally = async (payload) => {
   try {
@@ -49,7 +50,8 @@ export const refinePromptConversationally = async (payload) => {
       payload.imageBase64,
       payload.temperature,
       payload.framework,
-      payload.componentLibrary
+      payload.componentLibrary,
+      payload.isContinuation
     );
   } catch (error) {
     throw new Error(handleApiError(error, '优化Prompt时'));
@@ -57,9 +59,9 @@ export const refinePromptConversationally = async (payload) => {
 };
 
 /**
- * Validates the content of a given prompt.
- * @param {string} promptContent - The prompt content to validate.
- * @returns {Promise<string>} A promise that resolves to the validation feedback.
+ * 校验 Prompt 内容的有效性
+ * @param {string} promptContent - 待校验的 Prompt 内容
+ * @returns {Promise<string>} 校验反馈字符串
  */
 export const validatePrompt = async (promptContent) => {
   try {

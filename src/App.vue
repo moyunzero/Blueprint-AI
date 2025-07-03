@@ -1,37 +1,56 @@
 <script setup>
-import { onMounted } from 'vue';
-import { ElMessage } from 'element-plus'; // 直接导入以备用
+/**
+ * App.vue - 应用根组件
+ *
+ * 主要职责：
+ * - 提供全局布局（头部、主内容区）
+ * - 检查关键依赖加载状态，提升健壮性
+ * - 定义全局样式变量和主题，统一 UI 风格
+ */
 
-// 检查关键依赖是否正常
+import { onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+
+// ==================== 依赖检查 ====================
+
+/**
+ * 检查关键依赖是否正常加载
+ * 用于开发环境下的健壮性提示
+ */
 function checkDependencies() {
   const dependencies = [
-    { name: 'Element Plus', check: () => ElMessage },
-  ];
+    { name: 'Element Plus', check: () => ElMessage }
+  ]
 
   dependencies.forEach(dep => {
     try {
       if (!dep.check()) {
-        console.warn(`${dep.name} 未正确加载`);
+        console.warn(`${dep.name} 未正确加载`)
       }
-    } catch (e) {
-      console.warn(`${dep.name} 加载检查失败:`, e);
+    } catch (error) {
+      console.warn(`${dep.name} 加载检查失败:`, error)
     }
-  });
+  })
 }
 
+// ==================== 生命周期 ====================
+
 onMounted(() => {
-  checkDependencies();
-});
+  checkDependencies()
+})
 </script>
 
 <template>
+  <!-- 应用主容器，包含头部和主内容区 -->
   <div id="app-container">
     <el-container>
+      <!-- 顶部导航栏 -->
       <el-header class="header" role="banner">
         <div class="header-content">
           <h1 class="logo" role="heading" aria-level="1">Blueprint AI</h1>
         </div>
       </el-header>
+      <!-- 主内容区，渲染路由页面 -->
       <el-main role="main">
         <router-view></router-view>
       </el-main>
@@ -40,44 +59,47 @@ onMounted(() => {
 </template>
 
 <style>
-/* --- Professional Light Theme CSS Variables --- */
+/*
+  --- 全局主题变量与基础样式 ---
+  说明：统一全局色彩、字体、布局、阴影、动画等，提升 UI 一致性和可维护性
+*/
 :root {
-  /* --- Colors --- */
-  --color-primary: #4F46E5; /* Strong Indigo for better contrast */
+  /* --- 主题色 --- */
+  --color-primary: #4F46E5; /* 主色：深靛蓝 */
   --color-primary-rgb: 79, 70, 229;
   --color-primary-light: #6366F1;
   --color-primary-glow: rgba(var(--color-primary-rgb), 0.15);
 
-  --color-accent: #0891B2; /* Darker cyan for better readability */
+  --color-accent: #0891B2; /* 强调色：深青色 */
   --color-accent-rgb: 8, 145, 178;
   --color-accent-glow: rgba(var(--color-accent-rgb), 0.2);
 
-  --color-bg-dark: #F8FAFC; /* Very light gray background */
-  --color-bg-medium: #FFFFFF; /* Pure white for surfaces */
-  --color-bg-light: #E2E8F0; /* Light gray for borders */
-  --color-surface: rgba(255, 255, 255, 0.95); /* Semi-transparent white surface */
+  --color-bg-dark: #F8FAFC; /* 背景：极浅灰 */
+  --color-bg-medium: #FFFFFF; /* 纯白表面 */
+  --color-bg-light: #E2E8F0; /* 浅灰边框 */
+  --color-surface: rgba(255, 255, 255, 0.95); /* 半透明白表面 */
 
-  --color-text-primary: #1E293B; /* Dark slate for primary text */
-  --color-text-secondary: #475569; /* Medium gray for secondary text */
-  --color-text-tertiary: #94A3B8; /* Light gray for hints and disabled states */
+  --color-text-primary: #1E293B; /* 主文本色：深石板灰 */
+  --color-text-secondary: #475569; /* 次文本色 */
+  --color-text-tertiary: #94A3B8; /* 辅助文本色 */
 
   --color-border: rgba(var(--color-primary-rgb), 0.2);
   --color-border-hover: rgba(var(--color-primary-rgb), 0.4);
   --color-border-focus: var(--color-primary);
 
-  /* --- Effects --- */
+  /* --- 阴影与特效 --- */
   --shadow-glow-primary: 0 0 20px var(--color-primary-glow);
   --shadow-glow-accent: 0 0 20px var(--color-accent-glow);
   --text-shadow-primary: 0 0 8px var(--color-primary-glow);
   --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-card-hover: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.08);
 
-  /* --- Fonts --- */
+  /* --- 字体 --- */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   --font-size-xl: 24px;
 
-  /* --- Layout & Spacing --- */
+  /* --- 布局与间距 --- */
   --header-height: 60px;
   --border-radius: 8px;
   --border-radius-lg: 12px;
@@ -87,12 +109,12 @@ onMounted(() => {
   --spacing-lg: 20px;
   --spacing-xl: 24px;
 
-  /* --- Animation --- */
+  /* --- 动画 --- */
   --transition-fast: 0.2s ease;
   --transition-base: 0.3s ease-out;
 }
 
-/* --- Global Styles --- */
+/* --- 全局基础样式 --- */
 *, *::before, *::after { box-sizing: border-box; }
 
 html { height: 100%; scroll-behavior: smooth; }
@@ -114,7 +136,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-#app-container, #app { /* 兼容旧的 #app 和 Vite 的默认 #app */
+#app-container, #app { /* 兼容 Vite 默认 #app 和旧版 #app */
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -126,7 +148,7 @@ body {
   flex-direction: column;
 }
 
-/* --- Header --- */
+/* --- 头部导航栏样式 --- */
 .header {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -156,7 +178,7 @@ body {
   text-shadow: var(--text-shadow-primary);
 }
 
-/* --- Main Content --- */
+/* --- 主内容区样式 --- */
 .el-main {
   margin-top: var(--header-height);
   padding: 0;
@@ -166,7 +188,7 @@ body {
   flex-direction: column;
 }
 
-/* --- Element Plus Component Overrides --- */
+/* --- Element Plus 组件样式覆盖 --- */
 .el-card {
   background: var(--color-surface) !important;
   border: 1px solid var(--color-border) !important;
@@ -298,7 +320,7 @@ body {
 .el-tabs__active-bar { background-color: var(--color-primary) !important; }
 .el-tabs__nav-wrap::after { background-color: var(--color-bg-light) !important; }
 
-/* --- Scrollbar --- */
+/* --- 滚动条美化 --- */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--color-bg-dark); }
 ::-webkit-scrollbar-thumb {
@@ -306,6 +328,5 @@ body {
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
-
 
 </style>

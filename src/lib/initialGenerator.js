@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { getInitialGenerationSystemPrompt } from '@/prompts/initialGenerationPrompt.js';
 
+// ==================== API 配置与初始化 ====================
 const API_KEY = process.env.VUE_APP_INITIAL_GEN_API_KEY;
 const BASE_URL = process.env.VUE_APP_INITIAL_GEN_BASE_URL;
 const MODEL = process.env.VUE_APP_INITIAL_GEN_MODEL || "gpt-4.1";
@@ -9,6 +10,7 @@ const MAX_TOKENS = parseInt(process.env.VUE_APP_INITIAL_GEN_MAX_TOKENS) || 20000
 let initialGenClient = null;
 let initializationError = null;
 
+// 初始化 OpenAI 客户端，支持浏览器直连
 if (!API_KEY || !BASE_URL) {
   initializationError = 'Initial Generation API Key or Base URL is not configured. Please set VUE_APP_INITIAL_GEN_API_KEY and VUE_APP_INITIAL_GEN_BASE_URL in your .env file.';
   console.warn(initializationError);
@@ -28,14 +30,15 @@ if (!API_KEY || !BASE_URL) {
 }
 
 /**
- * Generates an initial development prompt from an image based on the selected tech stack.
- * @param {string} base64Image The base64 encoded image data.
- * @param {string} applicationType The type of application (e.g., 'web').
- * @param {number} temperature The creativity of the AI (0-1).
- * @param {string} framework The selected frontend framework (e.g., 'Vue', 'React').
- * @param {string} componentLibrary The selected UI component library (e.g., 'ElementPlus', 'MUI').
- * @param {string|null} customSystemPrompt An optional user-defined system prompt to override the default.
- * @returns {Promise<Stream<OpenAI.Chat.Completions.ChatCompletionChunk>>} A stream of completion chunks.
+ * 生成初始开发 Prompt（图片转结构化描述，支持多框架/组件库）
+ * @param {string} base64Image - 图片的 base64 编码
+ * @param {string} applicationType - 应用类型（如 'web'）
+ * @param {number} temperature - AI 创造性（0-1）
+ * @param {string} framework - 前端框架（如 'Vue', 'React'）
+ * @param {string} componentLibrary - UI 组件库（如 'ElementPlus'）
+ * @param {string|null} customSystemPrompt - 可选自定义系统提示词
+ * @returns {Promise<Stream<OpenAI.Chat.Completions.ChatCompletionChunk>>} 流式响应
+ * @throws {Error} 初始化或 API 调用失败时抛出
  */
 export async function generatePrompt(base64Image, applicationType, temperature = 0.5, framework = 'Vue', componentLibrary = 'ElementPlus', customSystemPrompt = null) {
   try {
@@ -43,18 +46,14 @@ export async function generatePrompt(base64Image, applicationType, temperature =
       const errorMessage = initializationError || "Initial Generation API client not initialized. Please configure API key and base URL.";
       throw new Error(errorMessage);
     }
-
     if (!base64Image) {
       throw new Error("图片数据不能为空");
     }
-    
-    // Generate the dynamic system prompt based on the selected framework and library.
+    // 动态生成系统提示词
     const defaultDynamicSystemPrompt = getInitialGenerationSystemPrompt(framework, componentLibrary, applicationType);
-
-    // Use the custom system prompt if provided, otherwise use the dynamically generated one.
+    // 优先使用自定义系统提示词
     const finalSystemPrompt = customSystemPrompt || defaultDynamicSystemPrompt;
-
-    // Prepare messages for the API call.
+    // 构造 API 消息体
     const messages = [
       {
         "role": "system",
@@ -76,8 +75,7 @@ export async function generatePrompt(base64Image, applicationType, temperature =
         ],
       }
     ];
-
-    // Call the API with streaming response.
+    // 调用 OpenAI API，返回流式响应
     try {
       const stream = await initialGenClient.chat.completions.create({
         model: MODEL,
@@ -86,7 +84,6 @@ export async function generatePrompt(base64Image, applicationType, temperature =
         stream: true,
         max_tokens: MAX_TOKENS,
       });
-
       return stream;
     } catch (err) {
       if (err.message.includes('context_length_exceeded')) {

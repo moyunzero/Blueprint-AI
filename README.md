@@ -1,88 +1,161 @@
-# Blueprint AI - 视觉驱动的开发加速器
+<div align="center">
 
-从设计稿到开发蓝图，一步到位。Blueprint AI 将您的 UI 视觉稿瞬间转化为结构清晰、可执行的前端开发任务。
+  <h1 align="center">Blueprint AI</h1>
 
-## ✨ 特性
+  <p align="center">
+    <strong>您的视觉驱动开发副驾</strong>
+    <br />
+    一个开源的 AI 工具，能将任何 UI 视觉稿（图片、设计文件）瞬间转化为结构清晰、可执行的前端开发蓝图。
+  </p>
+  
+  <p align="center">
+    <a href="https://github.com/your-username/blueprint-ai-vue/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/your-username/blueprint-ai-vue?style=flat-square" alt="License">
+    </a>
+    <a href="https://github.com/your-username/blueprint-ai-vue/issues">
+      <img src="https://img.shields.io/github/issues/your-username/blueprint-ai-vue?style=flat-square" alt="GitHub issues">
+    </a>
+    <a href="#">
+      <img src="https://img.shields.io/badge/vue.js-3.x-green?style=flat-square" alt="Vue.js">
+    </a>
+    <a href="#">
+      <img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat-square" alt="Contributions welcome">
+    </a>
+  </p>
+</div>
 
-- 🎨 **智能设计解析**: 上传 UI 设计稿，AI 自动识别组件结构和布局
-- 🛠️ **开发蓝图生成**: 生成详细的前端开发实现指南
-- 📝 **Prompt 模板管理**: 自定义和管理 AI 提示词模板
-- 💬 **交互式优化**: 通过对话进一步优化生成的开发蓝图
-- 📚 **历史版本管理**: 保存和管理不同版本的蓝图
-- 💾 **会话保存**: 保存和加载完整的工作会话
+---
+
+**Blueprint AI** 不仅仅是又一个 "image-to-code" 工具。它的核心哲学是 **增强而非取代** 开发者。我们相信，最好的 AI 协作模式是让 AI 处理繁琐的视觉分析和文档撰写工作，生成一份高质量的、机器和人都易于理解的开发蓝图（Blueprint），然后让开发者在此基础上进行创造性的编码工作。
+
+这个项目旨在弥合设计师与开发者之间的鸿沟，将模糊的视觉需求转化为精确、可执行的任务清单。
+
+<!-- 在这里插入一个展示应用核心流程的 GIF 动图，会极大地提升吸引力 -->
+<!-- ![Blueprint AI Demo GIF](link-to-your-demo.gif) -->
+
+## ✨ 核心特性
+
+- **🤖 智能视觉分析**: 上传任何 UI 图片（JPG, PNG, WebP...），AI 会自动识别布局、组件、颜色、字体和样式，并将其结构化。
+
+- **📝 高质量蓝图生成**: 一键生成以 Markdown 格式呈现的开发蓝图，内容包括组件层级、属性定义和实现建议，专为开发者设计。
+
+- **💬 对话式迭代优化**:
+    - 通过自然语言对话，对生成的蓝图进行微调和重构。
+    - **上传上下文**: 可在对话中上传 API 文档 (`.json`) 或技术文档 (`.txt`, `.md`)，AI 会自动吸收信息，完善蓝图中的数据结构和交互逻辑。
+    - **注入技术方案**: 直接提供您的技术细节（组件名、字段定义等），AI 会遵从您的指令，并将其无缝融合到蓝图中。
+
+- **✅ AI 驱动的蓝图校验**: 内置一个 AI "Linter"，可以自动审查生成的蓝图，检查其结构完整性、内容清晰度和可执行性，并提供优化建议。
+
+- **🕰️ 版本历史与差异对比**:
+    - 自动保存蓝图的每一个版本（初始生成、每次优化后）。
+    - 提供直观的 **Diff Viewer**，清晰地对比任意两个版本之间的差异，让您的决策过程有迹可循。
+
+- **💾 会话管理**: 完整的工作区（包括原始图片、设置、所有历史版本、聊天记录）可以一键保存到本地 `.json` 文件，随时加载，无缝继续工作。
+
+- **🧩 Prompt 模板引擎**: 创建、管理和使用您自己的系统级 Prompt 模板，以标准化、定制化 AI 的输出，满足团队或项目的特定规范。
 
 ## 🚀 快速开始
 
-### 环境要求
+### 1. 环境要求
+- Node.js `v16.0` 或更高版本
+- `npm`, `yarn` 或 `pnpm`
 
-- Node.js 16+
-- npm 或 yarn
-
-### 安装依赖
+### 2. 克隆与安装
 
 ```bash
+# 克隆仓库
+git clone https://github.com/your-username/blueprint-ai-vue.git
+
+# 进入目录
+cd blueprint-ai-vue
+
+# 安装依赖
 npm install
 ```
 
-### 开发模式
+### 3. 配置环境
+
+项目通过环境变量来管理敏感的 API 密钥。
 
 ```bash
+# 复制环境文件模板
+cp .env.example .env.local
+```
+
+然后，编辑新建的 `.env.local` 文件，填入您的 AI 服务提供商的密钥和基础 URL。本项目兼容所有与 OpenAI API 格式兼容的服务（如 OpenRouter, Groq, etc.）。
+
+```env
+# .env.local
+
+# 用于从图片生成初始蓝图的 API
+VUE_APP_INITIAL_GEN_API_KEY="sk-..."
+VUE_APP_INITIAL_GEN_BASE_URL="https://api.openai.com/v1" # 或者您的代理/服务商 URL
+VUE_APP_INITIAL_GEN_MODEL="gpt-4o" # 推荐使用具备强大视觉能力的模型
+
+# 用于对话优化和校验蓝图的 API
+# 可以与初始生成使用相同的配置
+VUE_APP_REFINEMENT_API_KEY="sk-..."
+VUE_APP_REFINEMENT_BASE_URL="https://api.openai.com/v1"
+VUE_APP_REFINEMENT_MODEL="gpt-4-turbo"
+```
+
+### 4. 运行应用
+
+```bash
+# 启动开发服务器
 npm run dev
 ```
 
-### 构建生产版本
+打开浏览器访问 `http://localhost:5173` (或 Vite 指定的其他端口)。
 
-```bash
-npm run build
-```
+## 🛠️ 技术栈与架构理念
 
-### 预览生产版本
+我们选择了一套现代化且高效的技术栈，以确保最佳的开发体验和性能。
 
-```bash
-npm run preview
-```
+- **前端**: **Vue 3** (Composition API) + **Vite** — 提供闪电般的启动速度和热更新，以及极佳的 TypeScript 支持。
+- **状态管理**: **Pinia** — Vue 官方推荐的状态管理库，轻量、直观且类型安全。
+- **UI & 图标**: **Element Plus** — 成熟、可靠的企业级 UI 组件库。
+- **AI 交互**: **OpenAI SDK v4** — 官方最新的 SDK，原生支持流式（Streaming）响应，带来流畅的 "打字机" 体验。
 
-## 🔧 配置
+### 架构亮点
 
-1. 复制 `.env.example` 为 `.env`
-2. 配置您的 AI API 密钥（如 OpenAI、Gemini 等）
-3. 根据需要调整其他配置项
+项目的核心逻辑被清晰地划分在以下几个模块中，体现了关注点分离的设计原则：
 
-## 📖 使用指南
+- **`src/stores`**: 应用的 **中枢神经系统**。使用 Pinia 管理所有核心状态，如会话数据 (`sessionStore`)、模板 (`promptTemplateStore`) 和校验结果 (`promptValidationStore`)。所有核心业务逻辑都由 Store 的 Actions 驱动。
 
-1. **上传设计稿**: 拖拽或点击上传您的 UI 设计图片
-2. **配置参数**: 选择应用类型、组件库等生成参数
-3. **生成蓝图**: 点击"生成蓝图"按钮，AI 将分析设计并生成开发指南
-4. **优化调整**: 使用对话功能进一步优化生成的蓝图
-5. **保存会话**: 保存当前工作会话以便后续继续
+- **`src/prompts`**: 应用的 **“灵魂”**。这里存放着精心设计的系统级 Prompt 指令。这些 Prompt 是整个应用能够生成高质量、结构化输出的关键，是 Prompt Engineering 的核心实践区。
 
-## 🛠️ 技术栈
+- **`src/services` & `src/lib`**: **服务调用层**。`services` 封装了对外的业务功能（如 `generateInitialPrompt`），而 `lib` 则处理与 OpenAI SDK 的直接交互。这种分层使得更换底层 AI 服务或调整业务逻辑变得简单。
 
-- **前端框架**: Vue 3 + Vite
-- **UI 组件库**: Element Plus
-- **状态管理**: Pinia
-- **路由**: Vue Router 4
-- **样式**: CSS Variables + 响应式设计
-- **AI 集成**: OpenAI API / Gemini API
+- **`src/utils`**: **强大的工具集**。提供了文件处理（Base64 转换、设计文件解析）、错误处理、文件校验和应用健康检查等一系列可复用的工具函数。
 
-## 📁 项目结构
+## 🛣️ 未来路线图
 
-```
-src/
-├── components/          # 可复用组件
-├── views/              # 页面组件
-├── stores/             # Pinia 状态管理
-├── router/             # 路由配置
-├── services/           # API 服务
-├── utils/              # 工具函数
-├── config/             # 配置文件
-└── assets/             # 静态资源
-```
+我们对 Blueprint AI 有着长远的规划，欢迎社区成员一同参与实现：
 
-## 🤝 贡献
+- [ ] **增强设计文件支持**: 深度集成 Figma API，直接从设计文件中提取图层、样式和原型信息。
+- [ ] **代码生成能力**: 在生成蓝图的基础上，提供一键生成对应前端框架（Vue/React）代码的实验性功能。
+- [ ] **团队协作**: 引入简单的云端同步功能，支持团队成员共享会话和 Prompt 模板。
+- [ ] **插件系统**: 允许开发者为特定的技术栈（如 Nuxt, Next.js）或代码规范编写自定义的 Prompt 插件。
+- [ ] **更智能的校验**: 引入更复杂的校验规则，例如检查蓝图与 API 文档的一致性。
 
-欢迎提交 Issue 和 Pull Request 来帮助改进项目！
+## 🤝 如何贡献
+
+我们热烈欢迎各种形式的贡献！无论是提交 Issue、发起 Pull Request，还是改进文档，都是对社区的宝贵支持。
+
+在开始之前，请查阅我们的贡献指南（待创建 `CONTRIBUTING.md`）。
+
+1.  **Fork** 本仓库
+2.  创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
+3.  提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
+4.  推送到分支 (`git push origin feature/AmazingFeature`)
+5.  发起一个 **Pull Request**
 
 ## 📄 许可证
 
-MIT License
+本项目基于 **MIT License**。详情请见 `LICENSE` 文件。
+
+---
+<div align="center">
+  <p>Made with ❤️ by the open-source community</p>
+</div>

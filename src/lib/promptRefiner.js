@@ -1,11 +1,11 @@
 import OpenAI from 'openai';
-import { getConversationalRefinementSystemPrompt } from '@/prompts/conversationalRefinementPrompt.js';
+import { getConversationalRefinementSystemPrompt, getContinuationSystemPrompt } from '@/prompts/conversationalRefinementPrompt.js';
 
+// ==================== API 配置与初始化 ====================
 const API_KEY = process.env.VUE_APP_REFINEMENT_API_KEY;
 const BASE_URL = process.env.VUE_APP_REFINEMENT_BASE_URL;
 const MODEL = process.env.VUE_APP_REFINEMENT_MODEL || 'gpt-4.1';
 
-// --- OpenAI Client Initialization ---
 let refinementClient = null;
 let initializationError = null;
 
@@ -27,11 +27,16 @@ try {
   refinementClient = null;
 }
 
+/**
+ * 统一处理 API 错误，抛出带上下文的错误信息
+ * @param {Error} error - 错误对象
+ * @param {string} context - 错误发生场景
+ * @throws {Error}
+ */
 function handleApiError(error, context) {
   let message = `Failed during Refinement API call (${context}).`;
   if (error instanceof OpenAI.APIError) {
     message = `Refinement API Error (${context}): ${error.status} ${error.name} - ${error.message}`;
-
     if (error.error) {
         message += ` Details: ${JSON.stringify(error.error)}`;
     }
@@ -41,17 +46,21 @@ function handleApiError(error, context) {
   throw new Error(message);
 }
 
-// 新增一个函数用于 Prompt 校验
+/**
+ * 校验 Prompt 内容质量，返回结构化建议
+ * @param {string} promptContent - 待校验的 Prompt 内容
+ * @returns {Promise<string>} 校验结果（Markdown 列表或通过提示）
+ * @throws {Error}
+ */
 export async function validatePromptContent(promptContent) {
   if (!refinementClient) {
     const errorMessage = initializationError || 'Refinement client is not initialized. Cannot validate prompt.';
     throw new Error(errorMessage);
   }
-
   if (!promptContent || promptContent.trim() === '') {
     throw new Error('Prompt内容不能为空');
   }
-
+  // 构造系统提示词，要求 LLM 结构化校验
   const systemPrompt = `你是一个专业的Prompt质量检查工程师。你的任务是审查用户提供的 Prompt，并根据以下规则给出结构化的问题列表和建议。
 
   **校验规则：**
@@ -91,13 +100,12 @@ export async function validatePromptContent(promptContent) {
       "content": `请检查以下 Prompt：\n\n\`\`\`\n${promptContent}\n\`\`\``
     }
   ];
-
   try {
     const response = await refinementClient.chat.completions.create({
       model: MODEL,
       messages: messages,
-      temperature: 0.1, // 校验任务应保持低温度，以获得确定性结果
-      max_tokens: 1000, // 校验结果通常不会太长
+      temperature: 0.1,
+      max_tokens: 1000,
     });
     return response.choices[0]?.message?.content || 'Prompt 校验失败或无响应。';
   } catch (error) {
@@ -105,6 +113,19 @@ export async function validatePromptContent(promptContent) {
   }
 }
 
+/**
+ * 对话式 Prompt 优化，支持多轮历史、图片、续写
+ * @param {string} currentFullPrompt - 当前基础 Prompt
+ * @param {Array} history - 聊天历史（含用户/助手消息）
+ * @param {string} userTextMessage - 用户输入
+ * @param {string|null} imageBase64 - 可选图片
+ * @param {number} temperature - 生成温度
+ * @param {string} framework - 前端框架
+ * @param {string} componentLibrary - 组件库
+ * @param {boolean} isContinuation - 是否为续写
+ * @returns {Promise<Stream<OpenAI.Chat.Completions.ChatCompletionChunk>>} 流式响应
+ * @throws {Error}
+ */
 export async function streamRefinement(
   currentFullPrompt,
   history,
@@ -112,13 +133,13 @@ export async function streamRefinement(
   imageBase64 = null,
   temperature = 0.2,
   framework = 'Vue',
-  componentLibrary = 'ElementPlus'
+  componentLibrary = 'ElementPlus',
+  isContinuation = false
 ){
   if (!refinementClient) {
     throw new Error('Refinement client is not initialized. Cannot refine prompt.');
   }
-
-  // Construct the user's message content, including image if provided
+  // 构造用户消息内容
   const userMessageContent = [{ type: 'text', text: userTextMessage }];
   if (imageBase64) {
     userMessageContent.push({
@@ -126,11 +147,11 @@ export async function streamRefinement(
       image_url: { url: imageBase64 },
     });
   }
-
-  // Generate the dynamic system prompt for conversational refinement.
-  const systemPrompt = getConversationalRefinementSystemPrompt(framework, componentLibrary, currentFullPrompt);
-
-  // Build the message history for the API call.
+  // 选择系统提示词
+  const systemPrompt = isContinuation
+    ? getContinuationSystemPrompt()
+    : getConversationalRefinementSystemPrompt(framework, componentLibrary, currentFullPrompt);
+  // 构造历史消息
   const actualHistoryForApi = history.map(msg => {
     if (msg.role === 'user') {
       if (msg.type === 'dev-solution-input') {
@@ -146,19 +167,17 @@ export async function streamRefinement(
     }
     return { role: 'assistant', content: msg.content };
   });
-
   const messages = [
     {
       role: 'system',
       content: systemPrompt,
     },
-    ...actualHistoryForApi, // 传递完整的对话历史
+    ...actualHistoryForApi,
     {
       role: 'user',
-      content: userMessageContent, // 当前用户输入（可能包含图片或特殊前缀）
+      content: userMessageContent,
     },
   ];
-
   try {
     const stream = await refinementClient.chat.completions.create({
       model: MODEL,

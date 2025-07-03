@@ -1,5 +1,7 @@
 <template>
+  <!-- Prompt 模板管理组件 - 提供模板的增删改查和导入导出功能 -->
   <el-card class="template-manager-card">
+    <!-- 卡片头部：标题和操作按钮 -->
     <template #header>
       <div class="header">
         <div class="header-title">
@@ -7,6 +9,7 @@
           <span>Prompt 模板管理</span>
         </div>
         <div class="header-actions">
+          <!-- 创建新模板按钮 -->
           <el-button
             type="primary"
             :icon="Plus"
@@ -15,7 +18,9 @@
           >
             创建新模板
           </el-button>
+          <!-- 隐藏的文件输入框：用于模板导入 -->
           <input type="file" ref="importFileInput" @change="handleImportFile" accept=".json" style="display: none;" />
+          <!-- 导入模板按钮 -->
           <el-button
             :icon="Upload"
             @click="triggerImportFile"
@@ -27,8 +32,12 @@
       </div>
     </template>
 
+    <!-- 模板列表容器 -->
     <div class="template-list-container">
+      <!-- 空状态：无模板时显示 -->
       <el-empty v-if="templateStore.sortedTemplates.length === 0" description="暂无自定义 Prompt 模板。"></el-empty>
+      
+      <!-- 模板列表表格 -->
       <el-table
         v-else
         :data="templateStore.sortedTemplates"
@@ -55,7 +64,7 @@
       </el-table>
     </div>
 
-    <!-- Template Edit/Create Dialog -->
+    <!-- 模板编辑/创建对话框 -->
     <el-dialog
       :title="isEditMode ? '编辑 Prompt 模板' : '创建 Prompt 模板'"
       v-model="templateFormVisible"
@@ -64,6 +73,7 @@
       append-to-body
       class="template-edit-dialog"
     >
+      <!-- 模板表单 -->
       <el-form :model="currentTemplate" ref="templateFormRef" :rules="formRules" label-width="80px">
         <el-form-item label="名称" prop="name">
           <el-input v-model="currentTemplate.name" placeholder="模板名称"></el-input>
@@ -81,6 +91,7 @@
             class="template-editor"
           />
         </el-form-item>
+        <!-- 使用提示 -->
         <el-alert
             title="请注意：当您使用自定义 Prompt 模板时，系统将不再使用默认的系统级 Prompt。"
             type="info"
@@ -89,6 +100,8 @@
             style="margin-bottom: 20px;"
         />
       </el-form>
+      
+      <!-- 对话框底部按钮 -->
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="handleFormClose">取消</el-button>
@@ -100,17 +113,27 @@
 </template>
 
 <script setup>
+/**
+ * Prompt 模板管理组件 - 提供模板的增删改查和导入导出功能
+ * 
+ * 主要功能：
+ * - 模板的创建、编辑、删除操作
+ * - 模板的导入导出功能
+ * - 模板列表的展示和管理
+ * - 表单验证和数据持久化
+ */
+
 import { ref, reactive, onMounted, nextTick } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Collection, Plus, Upload } from '@element-plus/icons-vue';
 import { usePromptTemplateStore } from '@/stores/promptTemplateStore';
 
-// --- Store ---
+// ===== 状态管理 =====
 const templateStore = usePromptTemplateStore();
 
-// --- State ---
-const templateFormVisible = ref(false);
-const isEditMode = ref(false);
+// ===== 响应式状态 =====
+const templateFormVisible = ref(false); // 表单对话框显示状态
+const isEditMode = ref(false); // 是否为编辑模式
 const currentTemplate = reactive({
   id: null,
   name: '',
@@ -119,24 +142,26 @@ const currentTemplate = reactive({
   createdAt: null,
 });
 
+// 表单验证规则
 const formRules = {
   name: [{ required: true, message: '请输入模板名称', trigger: 'blur' }],
   content: [{ required: true, message: '请输入模板内容', trigger: 'blur' }],
 };
 
-
-
-// --- Template Refs ---
+// ===== 模板引用 =====
 const importFileInput = ref(null);
 const templateFormRef = ref(null);
 const mdeEditorRef = ref(null);
 
-// --- Lifecycle Hooks ---
+// ===== 生命周期钩子 =====
 onMounted(() => {
   templateStore.loadPromptTemplates();
 });
 
-// --- Methods ---
+// ===== 方法定义 =====
+/**
+ * 显示模板表单 - 用于创建或编辑模板
+ */
 function showTemplateForm(template) {
   if (template) {
     isEditMode.value = true;
@@ -158,6 +183,9 @@ function showTemplateForm(template) {
   });
 }
 
+/**
+ * 保存模板 - 创建或更新模板
+ */
 async function saveTemplate() {
   if (!templateFormRef.value) return;
   await templateFormRef.value.validate(async (valid) => {
@@ -173,6 +201,9 @@ async function saveTemplate() {
   });
 }
 
+/**
+ * 确认删除模板
+ */
 async function confirmDelete(template) {
   try {
     await ElMessageBox.confirm(`确定要删除模板 "${template.name}" 吗？`, '警告', {
@@ -189,7 +220,11 @@ async function confirmDelete(template) {
   }
 }
 
+/**
+ * 导出模板为JSON文件 - 生成标准格式的模板文件
+ */
 function exportTemplate(template) {
+  // 构建标准导出格式
   const templateToExport = {
     formatVersion: '1.0.0',
     type: 'prompt_template',
@@ -208,10 +243,16 @@ function exportTemplate(template) {
   ElMessage.success('模板已导出！');
 }
 
+/**
+ * 触发文件选择
+ */
 function triggerImportFile() {
   importFileInput.value?.click();
 }
 
+/**
+ * 处理模板文件导入 - 支持批量导入和版本兼容性检查
+ */
 function handleImportFile(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -220,14 +261,19 @@ function handleImportFile(event) {
   reader.onload = async (e) => {
     try {
       const importedData = JSON.parse(e.target.result);
+      
+      // 验证文件格式
       if (importedData.type !== 'prompt_template' || !Array.isArray(importedData.templates)) {
         ElMessage.error('导入失败：文件格式不正确。请确保导入的是有效的 Prompt 模板文件。');
         return;
       }
+      
+      // 版本兼容性检查
       if (importedData.formatVersion !== '1.0.0') {
         ElMessage.warning('导入文件的版本可能不兼容，请注意内容。');
       }
 
+      // 执行批量导入
       const { importedCount, addedCount, updatedCount } = await templateStore.importPromptTemplates(importedData.templates);
       ElMessage.success(`成功导入 ${importedCount} 个模板，其中新增 ${addedCount} 个，更新 ${updatedCount} 个。`);
 
@@ -235,13 +281,16 @@ function handleImportFile(event) {
       ElMessage.error('导入失败：文件读取或解析错误。' + error.message);
     } finally {
       if (event.target) {
-        event.target.value = ''; // Clear file input
+        event.target.value = ''; // 清空文件输入
       }
     }
   };
   reader.readAsText(file);
 }
 
+/**
+ * 关闭表单对话框
+ */
 function handleFormClose() {
   templateFormVisible.value = false;
   templateFormRef.value?.resetFields();
@@ -249,6 +298,7 @@ function handleFormClose() {
 </script>
 
 <style scoped>
+/* ===== 主容器样式 ===== */
 .template-manager-card {
   height: 100%;
   display: flex;
@@ -273,17 +323,17 @@ function handleFormClose() {
   overflow: hidden;
 }
 
-/* Use template slot syntax for header */
+/* ===== 头部样式 ===== */
 .header {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  width: 100% !important;
-  min-height: 40px !important;
-  flex-wrap: wrap !important;
-  gap: 12px !important;
-  position: relative !important;
-  z-index: 10 !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
+  flex-wrap: wrap;
+  gap: 12px;
+  position: relative;
+  z-index: 10;
 }
 
 .header-title {
@@ -296,32 +346,17 @@ function handleFormClose() {
   flex-shrink: 0;
 }
 
-.header-icon {
-  font-size: 20px;
-  color: var(--color-primary);
-}
-
 .header-actions {
-  display: flex !important;
-  gap: 8px !important;
-  flex-shrink: 0 !important;
-  align-items: center !important;
-  position: relative !important;
-  z-index: 11 !important;
-}
-.header-actions .el-button {
-  white-space: nowrap !important;
-  position: relative !important;
-  z-index: 3 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
 }
 .header-actions .el-button .el-icon {
   margin-right: 4px;
 }
 
+/* ===== 模板列表样式 ===== */
 .template-list-container {
   flex-grow: 1;
   overflow-y: auto;
@@ -331,9 +366,7 @@ function handleFormClose() {
 }
 
 .templates-table {
-  background: transparent !important;
-  position: relative;
-  z-index: 0;
+  background: transparent;
 }
 
 .templates-table :deep(.el-table__header-wrapper) {
@@ -341,21 +374,21 @@ function handleFormClose() {
   border-radius: var(--border-radius);
 }
 .templates-table :deep(.el-table__header-wrapper th) {
-  background: transparent !important;
+  background: transparent;
   font-weight: 600;
   color: var(--color-text-primary);
 }
 
 .templates-table :deep(.el-table__body tr) {
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 .templates-table :deep(.el-table__body tr.el-table__row--striped) {
-    background-color: var(--color-bg-medium) !important;
+    background-color: var(--color-bg-medium);
 }
 
 .templates-table :deep(.el-table__cell) {
-    background: transparent !important;
+    background: transparent;
     border-bottom: 1px solid var(--color-bg-light);
     padding: 12px 0;
 }
@@ -366,7 +399,7 @@ function handleFormClose() {
     border-radius: 6px;
 }
 
-/* Dialog styles */
+/* ===== 对话框样式 ===== */
 .template-edit-dialog :deep(.el-dialog__body) {
   padding: var(--spacing-xl);
 }
@@ -389,13 +422,13 @@ function handleFormClose() {
     font-size: 14px;
     line-height: 1.6;
     padding: var(--spacing-md);
-    min-height: 300px !important;
-    background-color: var(--color-bg-dark) !important;
-    border: 1px solid var(--color-bg-light) !important;
-    color: var(--color-text-primary) !important;
+    min-height: 300px;
+    background-color: var(--color-bg-dark);
+    border: 1px solid var(--color-bg-light);
+    color: var(--color-text-primary);
 }
 
-/* 响应式样式 */
+/* ===== 响应式样式 ===== */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;

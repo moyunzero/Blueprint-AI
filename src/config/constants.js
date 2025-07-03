@@ -1,12 +1,13 @@
 /**
  * 应用程序配置常量
+ * - 文件大小、超时、会话格式、支持语言等全局参数
  */
 export const APP_CONFIG = {
-    FILE_SIZE_LIMIT: 5 * 1024 * 1024, // 5MB
-    MAX_PROMPT_LENGTH: 50000,
+    FILE_SIZE_LIMIT: 5 * 1024 * 1024, // 单文件最大5MB
+    MAX_PROMPT_LENGTH: 50000, // Prompt最大长度
     SESSION_FORMAT_VERSION: '1.0.1',
     SUPPORTED_LANGUAGES: ['zh-CN', 'en-US'],
-    API_TIMEOUT: 30000,
+    API_TIMEOUT: 30000, // ms
     RETRY_ATTEMPTS: 3,
     DEFAULT_TEMPERATURE: 0.5,
     MIN_TEMPERATURE: 0,
@@ -15,6 +16,7 @@ export const APP_CONFIG = {
 
 /**
  * UI界面配置常量
+ * - 各类布局、动画、响应式断点等
  */
 export const UI_CONFIG = {
     DIALOG_WIDTH: '70%',
@@ -29,18 +31,17 @@ export const UI_CONFIG = {
 
 /**
  * 前端框架选项配置
+ * - 供表单/下拉选择使用
  */
 export const FRAMEWORK_OPTIONS = [
     { label: 'Vue', value: 'Vue' },
     { label: 'React', value: 'React' },
-    // 可以轻松扩展更多框架
-    // { label: 'Angular', value: 'Angular' },
-    // { label: 'Svelte', value: 'Svelte' },
+    // 可扩展更多框架
 ];
 
 /**
  * UI组件库选项配置
- * 注意：这里的 value 最好是组件库的官方名称或常用名，便于 AI 理解
+ * - 供表单/下拉选择使用
  */
 export const COMPONENT_LIBRARY_OPTIONS = [
     { label: 'Element Plus (for Vue)', value: 'ElementPlus' },
@@ -54,6 +55,7 @@ export const COMPONENT_LIBRARY_OPTIONS = [
 
 /**
  * 文件验证规则配置
+ * - 各类文件的类型、扩展名、大小限制
  */
 export const FILE_VALIDATION_RULES = {
     image: {
@@ -90,6 +92,7 @@ export const FILE_VALIDATION_RULES = {
 
 /**
  * 文件编码选项配置
+ * - 供文件上传/读取时选择编码
  */
 export const FILE_ENCODING_OPTIONS = [
     { label: 'UTF-8 (推荐)', value: 'UTF-8' },
@@ -100,7 +103,7 @@ export const FILE_ENCODING_OPTIONS = [
 ];
 
 /**
- * 温度滑块配置
+ * 温度滑块配置（用于调节AI创造性）
  */
 export const TEMPERATURE_CONFIG = {
     MIN: 0,
@@ -120,6 +123,7 @@ export const TEMPERATURE_CONFIG = {
 
 /**
  * API相关配置
+ * - 统一管理后端接口路径、请求头、超时等
  */
 export const API_CONFIG = {
     ENDPOINTS: {
@@ -137,6 +141,7 @@ export const API_CONFIG = {
 
 /**
  * 消息类型常量
+ * - 聊天、上传、API输入等类型标识
  */
 export const MESSAGE_TYPES = {
     TEXT: 'text',
@@ -153,6 +158,7 @@ export const MESSAGE_TYPES = {
 
 /**
  * 应用类型选项配置
+ * - 供表单/下拉选择使用
  */
 export const APP_TYPE_OPTIONS = [
     { label: 'Web应用', value: 'web' },
@@ -162,6 +168,7 @@ export const APP_TYPE_OPTIONS = [
 
 /**
  * 默认表单配置
+ * - 新会话/重置时的初始表单参数
  */
 export const DEFAULT_FORM_CONFIG = {
     appType: 'web',
@@ -172,7 +179,7 @@ export const DEFAULT_FORM_CONFIG = {
 };
 
 /**
- * 验证规则
+ * 表单/输入验证规则
  */
 export const VALIDATION_RULES = {
     REQUIRED_MESSAGE: '此字段为必填项',
@@ -186,6 +193,7 @@ export const VALIDATION_RULES = {
 
 /**
  * 本地存储键名
+ * - 统一管理 localStorage/sessionStorage key
  */
 export const STORAGE_KEYS = {
     USER_PREFERENCES: 'user_preferences',
@@ -197,6 +205,7 @@ export const STORAGE_KEYS = {
 
 /**
  * 主题配置
+ * - 支持亮色/暗色/自动
  */
 export const THEME_CONFIG = {
     LIGHT: 'light',
@@ -207,6 +216,7 @@ export const THEME_CONFIG = {
 
 /**
  * 动画配置
+ * - 统一动画时长、缓动曲线
  */
 export const ANIMATION_CONFIG = {
     DURATION: {

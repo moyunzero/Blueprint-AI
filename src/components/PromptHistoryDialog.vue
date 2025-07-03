@@ -1,5 +1,7 @@
 <template>
+  <!-- 提示词历史版本对话框组件 - 管理和对比提示词版本 -->
   <div>
+    <!-- 主对话框：版本历史列表 -->
     <el-dialog
       title="Prompt 版本历史"
       v-model="isDialogVisible"
@@ -7,6 +9,7 @@
       append-to-body
       @closed="onDialogClosed"
     >
+      <!-- 头部操作按钮：版本对比功能 -->
       <div class="dialog-header-actions">
         <el-button
           v-if="selectedVersionIds.length > 0"
@@ -27,6 +30,7 @@
         </el-button>
       </div>
 
+      <!-- 版本时间线：按时间顺序展示版本历史 -->
       <el-timeline v-if="sortedPromptVersions.length > 0">
         <el-timeline-item
           v-for="version in sortedPromptVersions"
@@ -37,10 +41,13 @@
           <el-card
             :class="{ 'selected-for-diff': selectedVersionIds.includes(version.id) }"
           >
+            <!-- 版本类型标题 -->
             <h4>
               {{ version.source === 'initial' ? '初始生成' : (version.source === 'refined' ? '优化版本' : '加载/编辑') }}
             </h4>
+            <!-- 内容预览 -->
             <p class="prompt-preview">{{ version.content.substring(0, 150) }}...</p>
+            <!-- 版本操作按钮 -->
             <div class="card-actions">
               <el-button size="small" @click="handleViewFullPromptVersion(version)">
                 查看
@@ -60,7 +67,10 @@
           </el-card>
         </el-timeline-item>
       </el-timeline>
+      
+      <!-- 空状态：无版本历史时显示 -->
       <el-empty description="暂无 Prompt 历史记录。" v-else></el-empty>
+      
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="isDialogVisible = false">关闭</el-button>
@@ -68,7 +78,7 @@
       </template>
     </el-dialog>
 
-    <!-- View Full Prompt Version Dialog -->
+    <!-- 完整版本内容查看对话框 -->
     <el-dialog
       title="完整 Prompt 版本"
       v-model="viewFullPromptContentDialogVisible"
@@ -85,7 +95,7 @@
       </template>
     </el-dialog>
 
-    <!-- Diff Viewer Dialog -->
+    <!-- 版本差异对比对话框 -->
     <el-dialog
       :title="`Prompt 差异对比： ${version1Timestamp} vs ${version2Timestamp}`"
       v-model="diffDialogVisible"
@@ -108,148 +118,231 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { ElMessage } from 'element-plus';
-import { marked } from 'marked';
-import { diff_match_patch } from 'diff-match-patch';
-import { Files, Close } from '@element-plus/icons-vue';
+/**
+ * 提示词历史版本对话框组件 - 管理和对比提示词版本
+ * 
+ * 主要功能：
+ * - 显示提示词的历史版本列表
+ * - 支持查看完整版本内容
+ * - 提供版本切换和使用功能
+ * - 支持版本间的差异对比
+ * - 时间线形式展示版本演进过程
+ */
 
-// --- Props and Emits ---
+import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
+import { Files, Close } from '@element-plus/icons-vue'
+
+// 工具库导入
+import { marked } from 'marked'
+import { diff_match_patch } from 'diff-match-patch'
+
+// ===== 组件属性和事件 =====
 const props = defineProps({
   visible: {
     type: Boolean,
-    default: false,
+    default: false
   },
   versions: {
     type: Array,
-    default: () => [],
-  },
-});
+    default: () => []
+  }
+})
 
-const emit = defineEmits(['update:visible', 'use-version', 'closed']);
+const emit = defineEmits(['update:visible', 'use-version', 'closed'])
 
-// --- State ---
-const viewFullPromptContentDialogVisible = ref(false);
-const currentViewingPromptContent = ref(null);
-const selectedVersionIds = ref([]);
-const diffDialogVisible = ref(false);
-const diffHtmlContent = ref('');
-const version1Timestamp = ref('');
-const version2Timestamp = ref('');
+// ===== 响应式状态 =====
+// 查看完整内容对话框状态
+const viewFullPromptContentDialogVisible = ref(false)
+const currentViewingPromptContent = ref(null)
 
-// --- Computed Properties for v-model and logic ---
+// 版本对比功能状态
+const selectedVersionIds = ref([])
+const diffDialogVisible = ref(false)
+const diffHtmlContent = ref('')
+const version1Timestamp = ref('')
+const version2Timestamp = ref('')
+
+// ===== 计算属性 =====
+
+/**
+ * 对话框显示状态 - 双向绑定
+ */
 const isDialogVisible = computed({
   get: () => props.visible,
-  set: (value) => emit('update:visible', value),
-});
+  set: (value) => emit('update:visible', value)
+})
 
+/**
+ * 按时间戳降序排列的版本列表
+ */
 const sortedPromptVersions = computed(() => {
-  return [...props.versions].sort((a, b) => b.timestamp - a.timestamp);
-});
+  return [...props.versions].sort((a, b) => b.timestamp - a.timestamp)
+})
 
+/**
+ * 已选择用于对比的版本列表
+ */
 const selectedVersions = computed(() => {
   const versions = selectedVersionIds.value
     .map(id => props.versions.find(v => v.id === id))
-    .filter(Boolean);
-  return versions.sort((a, b) => a.timestamp - b.timestamp);
-});
+    .filter(Boolean)
+  return versions.sort((a, b) => a.timestamp - b.timestamp)
+})
 
+/**
+ * 是否可以进行版本对比
+ */
 const canCompare = computed(() => {
-  return selectedVersionIds.value.length === 2;
-});
+  return selectedVersionIds.value.length === 2
+})
 
-// --- Methods ---
+// ===== 事件处理方法 =====
+
+/**
+ * 查看完整版本内容
+ */
 function handleViewFullPromptVersion(version) {
-  currentViewingPromptContent.value = version.content;
-  viewFullPromptContentDialogVisible.value = true;
+  currentViewingPromptContent.value = version.content
+  viewFullPromptContentDialogVisible.value = true
 }
 
+/**
+ * 使用指定版本的提示词
+ */
 function handleUsePromptVersion(version) {
-  emit('use-version', version.content);
-  isDialogVisible.value = false;
-  clearCompareSelection();
+  emit('use-version', version.content)
+  isDialogVisible.value = false
+  clearCompareSelection()
 }
 
+/**
+ * 主对话框关闭事件处理
+ */
 function onDialogClosed() {
-  viewFullPromptContentDialogVisible.value = false;
-  currentViewingPromptContent.value = null;
-  clearCompareSelection();
-  emit('closed');
+  viewFullPromptContentDialogVisible.value = false
+  currentViewingPromptContent.value = null
+  clearCompareSelection()
+  emit('closed')
 }
 
+/**
+ * 差异对比对话框关闭事件处理
+ */
 function onDiffDialogClosed() {
-  diffHtmlContent.value = '';
+  diffHtmlContent.value = ''
 }
 
+/**
+ * 切换版本的对比选择状态
+ */
 function toggleSelectionForCompare(versionId) {
-  const index = selectedVersionIds.value.indexOf(versionId);
+  const index = selectedVersionIds.value.indexOf(versionId)
+  
   if (index > -1) {
-    selectedVersionIds.value.splice(index, 1);
+    // 取消选择
+    selectedVersionIds.value.splice(index, 1)
   } else {
     if (selectedVersionIds.value.length < 2) {
-      selectedVersionIds.value.push(versionId);
+      // 直接添加选择
+      selectedVersionIds.value.push(versionId)
     } else {
-      const oldestId = selectedVersions.value[0].id;
-      const oldestIndex = selectedVersionIds.value.indexOf(oldestId);
-      selectedVersionIds.value.splice(oldestIndex, 1);
-      selectedVersionIds.value.push(versionId);
-      ElMessage.info('已替换最早的选择。');
+      // 替换最早的选择
+      const oldestId = selectedVersions.value[0].id
+      const oldestIndex = selectedVersionIds.value.indexOf(oldestId)
+      selectedVersionIds.value.splice(oldestIndex, 1)
+      selectedVersionIds.value.push(versionId)
+      ElMessage.info('已替换最早的选择')
     }
   }
 }
 
+/**
+ * 清空对比选择
+ */
 function clearCompareSelection() {
-  selectedVersionIds.value = [];
-  if(diffDialogVisible.value) {
-    ElMessage.info('已清空对比选择。');
-  }
-  diffDialogVisible.value = false;
-  diffHtmlContent.value = '';
-  version1Timestamp.value = '';
-  version2Timestamp.value = '';
-}
-
-function performDiff() {
-  if (!canCompare.value) {
-    ElMessage.warning('请选择两个 Prompt 版本进行对比。');
-    return;
+  selectedVersionIds.value = []
+  
+  if (diffDialogVisible.value) {
+    ElMessage.info('已清空对比选择')
   }
   
-  const [version1, version2] = selectedVersions.value;
+  diffDialogVisible.value = false
+  diffHtmlContent.value = ''
+  version1Timestamp.value = ''
+  version2Timestamp.value = ''
+}
+
+/**
+ * 执行版本差异对比
+ */
+function performDiff() {
+  if (!canCompare.value) {
+    ElMessage.warning('请选择两个 Prompt 版本进行对比')
+    return
+  }
+  
+  const [version1, version2] = selectedVersions.value
 
   if (!version1 || !version2) {
-    ElMessage.error('无法找到选定的版本内容。');
-    clearCompareSelection();
-    return;
+    ElMessage.error('无法找到选定的版本内容')
+    clearCompareSelection()
+    return
   }
 
-  version1Timestamp.value = new Date(version1.timestamp).toLocaleString();
-  version2Timestamp.value = new Date(version2.timestamp).toLocaleString();
+  version1Timestamp.value = new Date(version1.timestamp).toLocaleString()
+  version2Timestamp.value = new Date(version2.timestamp).toLocaleString()
 
-  diffHtmlContent.value = generateUnifiedDiffHtml(version1.content, version2.content);
-  diffDialogVisible.value = true;
+  diffHtmlContent.value = generateUnifiedDiffHtml(version1.content, version2.content)
+  diffDialogVisible.value = true
 }
 
+// ===== 工具函数 =====
+
+/**
+ * HTML转义函数 - 防止XSS攻击
+ */
 function escapeHtml(text) {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-    return text.replace(/[&<>"']/g, (m) => map[m]);
+  const map = { 
+    '&': '&amp;', 
+    '<': '&lt;', 
+    '>': '&gt;', 
+    '"': '&quot;', 
+    "'": '&#39;' 
+  }
+  return text.replace(/[&<>"']/g, (m) => map[m])
 }
 
+/**
+ * 自定义差异HTML生成器 - 根据差异操作类型生成带样式的HTML
+ */
 function diffPrettyHtmlCustom(diffs, removedClass, addedClass) {
-    let html = [];
-    for (let i = 0; i < diffs.length; i++) {
-        const op = diffs[i][0];
-        const text = diffs[i][1];
-        const escapedText = escapeHtml(text);
-        switch (op) {
-            case 1: html.push(`<span class="${addedClass}">${escapedText}</span>`); break;
-            case -1: html.push(`<span class="${removedClass}">${escapedText}</span>`); break;
-            case 0: html.push(escapedText); break;
-        }
+  let html = []
+  
+  for (let i = 0; i < diffs.length; i++) {
+    const op = diffs[i][0]
+    const text = diffs[i][1]
+    const escapedText = escapeHtml(text)
+    
+    switch (op) {
+      case 1: // 添加
+        html.push(`<span class="${addedClass}">${escapedText}</span>`)
+        break
+      case -1: // 删除
+        html.push(`<span class="${removedClass}">${escapedText}</span>`)
+        break
+      case 0: // 无变化
+        html.push(escapedText)
+        break
     }
-    return html.join('');
+  }
+  
+  return html.join('')
 }
 
+/**
+ * 生成统一差异对比HTML - 核心差异对比算法
+ */
 function generateUnifiedDiffHtml(oldText, newText) {
     const dmp = new diff_match_patch();
     const lineMap = dmp.diff_linesToChars_(oldText, newText);
@@ -276,15 +369,18 @@ function generateUnifiedDiffHtml(oldText, newText) {
             let lineClass = '';
             let renderedContent = '';
 
+            // 检测是否为修改行（删除+添加的组合）
             const isModifiedLine = (op === -1 && i + 1 < diff.length && diff[i + 1][0] === 1 && linesInSegment.length === 1 && diff[i + 1][1].split('\n').length === 1);
 
             if (op === 0) {
+                // 无变化行
                 lineClass = 'diff-line-unchanged';
                 currentOldLineNum = oldLineNum++;
                 currentNewLineNum = newLineNum++;
                 renderedContent = escapeHtml(lineContent);
             } else if (op === -1) {
                 if (isModifiedLine) {
+                    // 修改行：显示行内差异
                     lineClass = 'diff-line-modified-old';
                     prefixChar = '-';
                     currentOldLineNum = oldLineNum++;
@@ -295,12 +391,14 @@ function generateUnifiedDiffHtml(oldText, newText) {
                     newLineNum++;
                     i++;
                 } else {
+                    // 删除行
                     lineClass = 'diff-line-removed';
                     prefixChar = '-';
                     currentOldLineNum = oldLineNum++;
                     renderedContent = `<span class="diff-removed-inline">${escapeHtml(lineContent)}</span>`;
                 }
             } else if (op === 1) {
+                // 添加行
                 lineClass = 'diff-line-added';
                 prefixChar = '+';
                 currentNewLineNum = newLineNum++;
@@ -320,6 +418,7 @@ function generateUnifiedDiffHtml(oldText, newText) {
 </script>
 
 <style scoped>
+/* ===== 版本预览样式 ===== */
 .prompt-preview {
   font-size: 0.9em;
   color: #666;
@@ -333,6 +432,7 @@ function generateUnifiedDiffHtml(oldText, newText) {
   -webkit-box-orient: vertical;
 }
 
+/* ===== 时间线样式 ===== */
 :deep(.el-timeline-item__timestamp) {
   font-size: 0.85em;
   color: #888;
@@ -355,6 +455,8 @@ function generateUnifiedDiffHtml(oldText, newText) {
     gap: 8px;
     flex-wrap: wrap;
 }
+
+/* ===== 内容查看器样式 ===== */
 .result-content-viewer {
   padding: 15px;
   border-radius: 4px;
@@ -362,6 +464,8 @@ function generateUnifiedDiffHtml(oldText, newText) {
   border: 1px solid #e0e6ed;
   background-color: #fdfdfd;
 }
+
+/* ===== 对话框头部操作样式 ===== */
 .dialog-header-actions {
     display: flex;
     justify-content: flex-end;
@@ -375,6 +479,7 @@ function generateUnifiedDiffHtml(oldText, newText) {
   margin-right: 4px;
 }
 
+/* ===== 差异对比样式 ===== */
 .diff-viewer-content {
   background-color: #f8f8f8;
   border: 1px solid #eee;

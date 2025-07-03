@@ -1,12 +1,12 @@
 /**
- * @param {string} framework - The selected frontend framework (e.g., 'Vue', 'React').
- * @param {string} componentLibrary - The selected component library.
- * @param {string} applicationType - The type of application (e.g., 'web').
- * @returns {string} The full system prompt for initial image-to-prompt generation, strictly adhering to the original structure.
+ * 生成初始图片转 Prompt 的系统提示词（严格遵循原始结构和约束）
+ * @param {string} framework - 选定的前端框架（如 'Vue', 'React'）
+ * @param {string} componentLibrary - 选定的组件库
+ * @param {string} applicationType - 应用类型（如 'web'），默认 'web'
+ * @returns {string} 用于 LLM 的系统提示词
  */
 export const getInitialGenerationSystemPrompt = (framework, componentLibrary, applicationType = 'web') => {
-  // NOTE: This version is a strict restoration of the original prompt's structure and wording,
-  // only replacing hardcoded values with dynamic variables for framework and component library.
+  // NOTE: 此版本严格还原原始 Prompt 结构和措辞，仅动态替换框架和组件库变量
   const defaultDynamicResponsePrefix = `
     Create detailed ${framework} components with these requirements:
     **Core Technical & Project Requirements:**

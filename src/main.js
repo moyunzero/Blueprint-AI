@@ -1,41 +1,60 @@
+/**
+ * Blueprint AI - 主应用入口文件
+ * 
+ * 功能说明：
+ * - 初始化Vue 3应用实例
+ * - 配置全局插件和组件
+ * - 设置全局错误处理机制
+ * - 启动应用健康检查系统
+ */
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+
 import App from './App.vue'
 import router from './router'
 import healthChecker from './utils/healthCheck'
 
+// ==================== 应用初始化 ====================
+
 const app = createApp(App)
 
-// 注册所有 Element Plus 图标
+// 批量注册 Element Plus 图标组件
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 
-app.use(createPinia())
-app.use(router)
-app.use(ElementPlus)
+// 注册全局插件
+app.use(createPinia())  // 状态管理
+app.use(router)         // 路由管理
+app.use(ElementPlus)    // UI组件库
 
-// 全局错误处理
+// ==================== 全局错误处理 ====================
+
+/**
+ * Vue组件错误处理器
+ * 捕获组件渲染和生命周期中的错误
+ */
 app.config.errorHandler = (err, instance, info) => {
-  console.error('Vue全局错误:', err)
-  console.error('错误信息:', info)
+  console.error('Vue组件错误:', err)
+  console.error('错误上下文:', info)
   console.error('组件实例:', instance)
 
-  // 在Vue 3中，我们不能轻易地从instance获取$message
-  // 更可靠的方式是在需要的地方注入或使用全局的ElMessage
-  // 作为备用方案，我们可以在这里直接调用
+  // 显示用户友好的错误提示
   if (app.config.globalProperties.$message) {
     app.config.globalProperties.$message.error('页面出现异常，请刷新重试')
   } else {
-    // 如果无法显示Element Plus消息，使用原生alert
     alert('页面出现异常，请刷新重试')
   }
 }
 
-// 捕获未处理的Promise错误
+/**
+ * 未处理的Promise错误捕获
+ * 主要用于捕获异步操作中的错误
+ */
 window.addEventListener('unhandledrejection', event => {
   console.error('未处理的Promise错误:', event.reason)
   event.preventDefault()
@@ -45,36 +64,55 @@ window.addEventListener('unhandledrejection', event => {
   }
 })
 
-// 捕获全局JavaScript错误
+/**
+ * 全局JavaScript运行时错误捕获
+ * 捕获同步代码执行中的错误
+ */
 window.addEventListener('error', event => {
-  console.error('全局JavaScript错误:', event.error)
-  console.error('错误文件:', event.filename)
-  console.error('错误行号:', event.lineno)
+  console.error('全局JavaScript错误:', {
+    error: event.error,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno
+  })
 })
+
+// ==================== 应用启动 ====================
 
 app.mount('#app')
 
+// ==================== 健康检查系统 ====================
 
-// 应用启动后进行健康检查
-setTimeout(() => {
-  healthChecker.runAllChecks().then(results => {
+/**
+ * 应用启动后执行一次性健康检查
+ * 检查关键功能是否正常工作
+ */
+setTimeout(async () => {
+  try {
+    const results = await healthChecker.runAllChecks()
     const summary = healthChecker.getSummary(results)
+    
     console.log('应用健康检查结果:', summary)
-
+    
     if (summary.overallStatus === 'unhealthy') {
-      console.warn('检测到应用健康问题:', results.filter(r => r.status !== 'healthy'))
+      const unhealthyChecks = results.filter(r => r.status !== 'healthy')
+      console.warn('检测到应用健康问题:', unhealthyChecks)
     }
-  }).catch(error => {
+  } catch (error) {
     console.error('健康检查失败:', error)
-  })
+  }
 }, 1000)
 
-// 在开发环境下启动定期健康检查
+/**
+ * 开发环境下启动定期健康检查
+ * 每分钟检查一次应用状态
+ */
 if (import.meta.env.DEV) {
   healthChecker.startPeriodicCheck(60000, (results) => {
     const summary = healthChecker.getSummary(results)
     if (summary.overallStatus === 'unhealthy') {
-      console.warn('定期健康检查发现问题:', results.filter(r => r.status !== 'healthy'))
+      const unhealthyChecks = results.filter(r => r.status !== 'healthy')
+      console.warn('定期健康检查发现问题:', unhealthyChecks)
     }
   })
 }

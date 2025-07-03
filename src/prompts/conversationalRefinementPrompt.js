@@ -1,12 +1,12 @@
-// src/prompts/conversationalRefinementPrompt.js
 /**
- * @param {string} framework - The selected frontend framework.
- * @param {string} componentLibrary - The selected component library.
- * @param {string} currentFullPrompt - The current base prompt to be refined.
- * @returns {string} The full system prompt for conversational prompt refinement, strictly adhering to the original structure.
+ * 生成对话式 Prompt 优化的系统提示词（严格遵循原始结构和约束）
+ * @param {string} framework - 选定的前端框架
+ * @param {string} componentLibrary - 选定的组件库
+ * @param {string} currentFullPrompt - 当前基础 Prompt 内容
+ * @returns {string} 用于 LLM 的系统提示词
  */
 export const getConversationalRefinementSystemPrompt = (framework, componentLibrary, currentFullPrompt) => {
-  // NOTE: This version is a strict restoration of the original prompt's structure and wording.
+  // NOTE: 此版本严格还原原始 Prompt 结构和措辞
     
   return `你是一个经验丰富的前端开发助手和Prompt工程师。你的主要目标是迭代地优化一份详细的${framework}组件生成Prompt。
 你将获得一个名为 "CURRENT PROMPT BASE" 的主Prompt，这是我们当前正在处理的Prompt版本。
@@ -109,4 +109,14 @@ ${currentFullPrompt}
 
 请根据上述指令和当前的用户输入进行响应。
 `;
+};
+
+/**
+ * 生成续写场景下的系统提示词（用于 LLM 继续未完成回复）
+ * @returns {string} 续写专用系统提示词
+ */
+export const getContinuationSystemPrompt = () => {
+  return `你是一个助手。你的任务是从上次被截断的地方无缝地继续之前的回复。
+不要重复任何已有内容。不要添加任何对话性文本、介绍或结束语如"Updated Prompt:"。
+只需直接提供剩余的文本，从上次回复结束的地方准确地继续。`;
 };
