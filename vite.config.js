@@ -16,9 +16,22 @@ export default defineConfig(({ mode }) => {
       },
     },
     define: {
-      // Vite a.k.a. Rollup's version of webpack.DefinePlugin
-      // This makes .env variables available in your client-side code
       'process.env': env
+    },
+    server: {
+      proxy: {
+        '/chat/completions': {
+          target: env.AI_PROXY_TARGET_BASE_URL || 'https://aigc.sankuai.com/v1/openai/native',
+          changeOrigin: true,
+          configure: (proxy, options) => {
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              // 添加认证头
+              proxyReq.setHeader('Authorization', `Bearer ${env.AI_PROXY_API_KEY}`);
+              proxyReq.setHeader('Content-Type', 'application/json');
+            });
+          }
+        }
+      }
     }
   }
 })

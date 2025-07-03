@@ -10,6 +10,7 @@
  */
 
 import { defineStore } from 'pinia'
+import { watch } from 'vue'
 import { generateInitialPrompt } from '@/services/aiService'
 import { usePromptValidationStore } from './promptValidationStore'
 import { DEFAULT_FORM_CONFIG } from '@/config/constants'
@@ -17,7 +18,24 @@ import { DEFAULT_FORM_CONFIG } from '@/config/constants'
 // ==================== 常量定义 ====================
 
 /** 会话文件格式版本号 */
-const SESSION_FORMAT_VERSION = '1.0.1'
+const SESSION_FORMAT_VERSION = '1.0.2' // 版本提升
+/** 本地存储键名 */
+const LOCAL_STORAGE_SESSION_KEY = 'blueprint_ai_autosave_session'
+
+// ==================== 工具函数 ====================
+
+/**
+ * 防抖函数
+ */
+function debounce(fn, delay) {
+  let timeoutID = null
+  return function(...args) {
+    clearTimeout(timeoutID)
+    timeoutID = setTimeout(() => {
+      fn.apply(this, args)
+    }, delay)
+  }
+}
 
 // ==================== 状态初始化 ====================
 
@@ -75,6 +93,61 @@ export const useSessionStore = defineStore('session', {
      */
     _resetState() {
       Object.assign(this, getDefaultState())
+      // 清空本地存储
+      localStorage.removeItem(LOCAL_STORAGE_SESSION_KEY)
+    },
+
+    // ==================== 会话保存与加载 ====================
+
+    /**
+     * 将当前会话状态保存到 localStorage
+     * @private
+     */
+    _saveSessionToLocalStorage() {
+      // 检查是否启用自动保存
+      if (process.env.VUE_APP_DISABLE_AUTO_SAVE === 'true') return;
+      
+      // 只有在有图片或 prompt 时才保存，避免保存空会话
+      if (!this.currentImageBase64 && !this.activePrompt) return;
+      
+      // 创建状态副本，排除生成状态，避免刷新后自动生成
+      const stateToSave = {
+        ...this.$state,
+        isGenerating: false // 始终保存为非生成状态
+      };
+      
+      const sessionData = {
+        formatVersion: SESSION_FORMAT_VERSION,
+        savedAt: Date.now(),
+        state: stateToSave
+      }
+      try {
+        localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(sessionData));
+      } catch (e) {
+        console.error("Failed to save session to localStorage:", e);
+      }
+    },
+
+    /**
+     * 从 localStorage 加载会话状态
+     */
+    loadSessionFromLocalStorage() {
+      const savedData = localStorage.getItem(LOCAL_STORAGE_SESSION_KEY);
+      if (savedData) {
+        try {
+          const data = JSON.parse(savedData);
+          if (data.formatVersion === SESSION_FORMAT_VERSION && data.state) {
+            this.$patch(data.state);
+            console.log("Session restored from localStorage.");
+          } else {
+            // 版本不兼容，清空旧数据
+            localStorage.removeItem(LOCAL_STORAGE_SESSION_KEY);
+          }
+        } catch(e) {
+          console.error("Failed to load session from localStorage:", e);
+          localStorage.removeItem(LOCAL_STORAGE_SESSION_KEY);
+        }
+      }
     },
 
     /**
@@ -240,17 +313,24 @@ export const useSessionStore = defineStore('session', {
         reader.onload = (e) => {
           try {
             const data = JSON.parse(e.target.result)
-            const compatibleVersions = ['1.0.0', '1.0.1']
+            const compatibleVersions = ['1.0.0', '1.0.1', '1.0.2']
             if (!data.formatVersion || !compatibleVersions.includes(data.formatVersion)) {
               return reject(new Error(`会话文件版本不兼容。期望版本: ${compatibleVersions.join('或 ')}。`))
             }
             this._resetState()
-            this.currentImageBase64 = data.initialImageBase64 || ''
-            this.formSettings = data.initialFormSettings || getDefaultState().formSettings
-            this.promptVersions = data.promptVersions || []
-            this.chatHistory = data.chatHistory || []
-            this.activePrompt = data.activePrompt || ''
-            this.basePromptForChat = data.basePromptForChat || data.activePrompt || ''
+            
+            // 兼容旧格式和新格式
+            const stateToLoad = data.state || {
+                currentImageBase64: data.initialImageBase64,
+                formSettings: data.initialFormSettings,
+                promptVersions: data.promptVersions,
+                chatHistory: data.chatHistory,
+                activePrompt: data.activePrompt,
+                basePromptForChat: data.basePromptForChat
+            };
+
+            this.$patch(stateToLoad);
+
             resolve()
           } catch (error) {
             reject(new Error('加载会话失败: 文件格式无效或已损坏。' + error.message))
@@ -262,3 +342,23 @@ export const useSessionStore = defineStore('session', {
     }
   }
 })
+
+// 自动保存功能 - 通过 Pinia 插件实现
+export function setupAutoSave(pinia) {
+  pinia.use(({ store }) => {
+    if (store.$id === 'session') {
+      const debouncedSave = debounce(() => {
+        store._saveSessionToLocalStorage();
+      }, 1000); // 1秒防抖
+
+      // 监听整个 state 的变化
+      watch(
+        store.$state,
+        () => {
+          debouncedSave();
+        },
+        { deep: true }
+      );
+    }
+  });
+}

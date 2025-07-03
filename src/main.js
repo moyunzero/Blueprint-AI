@@ -17,6 +17,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 import healthChecker from './utils/healthCheck'
+import { setupAutoSave } from './stores/sessionStore'
 
 // ==================== 应用初始化 ====================
 
@@ -27,8 +28,12 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 
+// 创建 Pinia 实例并设置自动保存
+const pinia = createPinia()
+setupAutoSave(pinia)
+
 // 注册全局插件
-app.use(createPinia())  // 状态管理
+app.use(pinia)          // 状态管理
 app.use(router)         // 路由管理
 app.use(ElementPlus)    // UI组件库
 

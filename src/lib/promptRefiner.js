@@ -2,24 +2,25 @@ import OpenAI from 'openai';
 import { getConversationalRefinementSystemPrompt, getContinuationSystemPrompt } from '@/prompts/conversationalRefinementPrompt.js';
 
 // ==================== API 配置与初始化 ====================
-const API_KEY = process.env.VUE_APP_REFINEMENT_API_KEY;
-const BASE_URL = process.env.VUE_APP_REFINEMENT_BASE_URL;
+const PROXY_PATH = process.env.VUE_APP_API_PROXY_PATH;
 const MODEL = process.env.VUE_APP_REFINEMENT_MODEL || 'gpt-4.1';
 
 let refinementClient = null;
 let initializationError = null;
 
 try {
-  if (!API_KEY || API_KEY === 'YOUR_API_KEY_HERE' || !BASE_URL) {
-    initializationError = 'Refinement API Key or Base URL not configured correctly. Please check your environment variables.';
+  if (!PROXY_PATH) {
+    initializationError = 'Refinement API proxy path not configured correctly. Please check your environment variables.';
     console.warn(initializationError);
   } else {
+    // 在本地开发环境中，使用代理的基础URL（不包含/chat/completions）
+    const baseURL = window.location.origin;
     refinementClient = new OpenAI({
-      apiKey: API_KEY,
-      baseURL: BASE_URL,
+      apiKey: 'not-needed-for-proxy', // 任意字符串
+      baseURL: baseURL, // 使用基础URL，让OpenAI SDK自动添加路径
       dangerouslyAllowBrowser: true
     });
-    console.log('Prompt Refinement API client initialized successfully');
+    console.log('Prompt Refinement API client initialized for proxy successfully');
   }
 } catch (error) {
   initializationError = `Failed to initialize Prompt Refinement API client: ${error.message}`;

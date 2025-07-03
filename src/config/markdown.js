@@ -25,47 +25,7 @@ export const createMarkedInstance = () => {
     return markedInstance;
 };
 
-/**
- * EasyMDE 编辑器的完整工具栏配置
- * 适用于常规 Markdown 编辑场景
- * @type {import('easymde').Options}
- */
-export const MDE_OPTIONS = {
-    toolbar: [
-        'bold', 'italic', 'heading', '|',
-        'quote', 'unordered-list', 'ordered-list', '|',
-        'link', 'image', 'code', 'table', '|',
-        'preview', 'fullscreen', 'side-by-side'
-    ],
-    renderingConfig: {
-        codeSyntaxHighlighting: true, // 启用代码高亮
-    },
-    placeholder: "在此处输入内容（支持 Markdown 格式）...",
-};
 
-/**
- * EasyMDE 编辑器的简化工具栏配置
- * 适用于技术方案、简要输入等场景
- * @type {import('easymde').Options}
- */
-export const MDE_OPTIONS_SIMPLE = {
-    toolbar: ['bold', 'italic', 'heading', '|', 'quote', 'unordered-list', 'ordered-list', '|', 'link', 'code'],
-    renderingConfig: { codeSyntaxHighlighting: true },
-    placeholder: "在此处输入技术方案内容（支持 Markdown 格式）...",
-};
-
-/**
- * EasyMDE 编辑器的极简配置（无工具栏）
- * 适用于纯文本输入、描述类场景
- * @type {import('easymde').Options}
- */
-export const MDE_OPTIONS_MINIMAL = {
-    toolbar: false,
-    renderingConfig: {
-        codeSyntaxHighlighting: true,
-    },
-    placeholder: "在此处输入功能描述（支持 Markdown 格式）...",
-};
 
 /**
  * 初始化 marked 的全局配置（全局只需调用一次）

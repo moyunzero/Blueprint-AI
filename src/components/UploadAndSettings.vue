@@ -107,7 +107,7 @@
       <div class="action-section">
         <!-- API Key 警告提示 -->
         <div v-if="!apiKeySet" class="api-key-warning">
-          <el-alert title="API Key 未设置" type="warning" description="要使用真实的 LLM API，请在 .env 文件中设置您的 API 密钥。当前正在使用模拟数据。" show-icon :closable="false"></el-alert>
+          <el-alert title="API 代理未配置" type="warning" description="要使用真实的 LLM API，请确保在 .env 文件中正确配置了 VUE_APP_API_PROXY_PATH。当前正在使用模拟数据。" show-icon :closable="false"></el-alert>
         </div>
 
         <!-- 生成蓝图按钮 -->
@@ -118,13 +118,16 @@
 
         <!-- 会话管理按钮组 -->
         <el-row :gutter="12" style="margin-top: 16px;">
-          <el-col :span="12">
+          <el-col :span="8">
             <el-button @click="handleSaveSessionClick" class="full-width" :icon="Download">保存会话</el-button>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="8">
             <!-- 隐藏的文件输入框：用于会话加载 -->
             <input type="file" ref="loadSessionInputRef" @change="handleLoadSessionFileTrigger" accept=".json" style="display: none" />
             <el-button @click="triggerLoadSessionInput" class="full-width" :icon="Upload">加载会话</el-button>
+          </el-col>
+          <el-col :span="8">
+            <el-button @click="handleClearSessionClick" class="full-width" :icon="Delete" type="danger" plain>清空会话</el-button>
           </el-col>
         </el-row>
       </div>
@@ -145,7 +148,7 @@
  */
 
 import { ref, reactive, watch } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { convertFileToBase64, detectFileType, processDesignFile } from '@/utils/fileUtils';
 import { usePromptTemplateStore } from '@/stores/promptTemplateStore';
 import { FRAMEWORK_OPTIONS, COMPONENT_LIBRARY_OPTIONS } from '@/config/constants';
@@ -177,7 +180,8 @@ const emit = defineEmits([
   'settings-changed',
   'generate-prompt-requested',
   'save-session-requested',
-  'load-session-file-selected'
+  'load-session-file-selected',
+  'clear-session-requested'
 ]);
 
 // ===== 状态管理 =====
@@ -193,7 +197,8 @@ const selectedTemplateContent = ref(null); // 选中的模板内容
 
 const frameworkOptions = ref(FRAMEWORK_OPTIONS);
 const libraryOptions = ref(COMPONENT_LIBRARY_OPTIONS);
-const apiKeySet = ref(process.env.VUE_APP_INITIAL_GEN_API_KEY && process.env.VUE_APP_INITIAL_GEN_API_KEY !== 'YOUR_API_KEY_HERE');
+// 检查代理路径是否配置，这是新架构下判断API是否可用的标准
+const apiKeySet = ref(process.env.VUE_APP_API_PROXY_PATH && process.env.VUE_APP_API_PROXY_PATH !== '');
 
 // ===== 模板引用 =====
 const mainUploaderRef = ref(null);
@@ -330,6 +335,23 @@ function handleLoadSessionFileTrigger(event) {
   if (loadSessionInputRef.value) {
     loadSessionInputRef.value.value = null;
   }
+}
+
+/**
+ * 清空会话处理
+ */
+function handleClearSessionClick() {
+  ElMessageBox.confirm('确定要清空当前会话吗？这将删除所有上传的图片、生成的内容和聊天记录。', '清空会话', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    emit('clear-session-requested');
+    clearUploadState();
+    ElMessage.success('会话已清空');
+  }).catch(() => {
+    // 用户取消，不做任何操作
+  });
 }
 
 /**

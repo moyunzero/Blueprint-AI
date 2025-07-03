@@ -35,6 +35,7 @@
                 @generate-prompt-requested="handleGenerateCodePromptRequest"
                 @save-session-requested="sessionStore.saveSessionToFile"
                 @load-session-file-selected="handleLoadSessionFile"
+                @clear-session-requested="handleClearSession"
               />
             </template>
           </ImageToCodePanel>
@@ -116,7 +117,9 @@ const uploadAndSettingsRef = ref(null)
 
 onMounted(() => {
   // 应用启动时加载 Prompt 模板
-  templateStore.loadPromptTemplates()
+  templateStore.loadPromptTemplates();
+  // 尝试从 localStorage 加载上一次的会话
+  sessionStore.loadSessionFromLocalStorage();
 })
 
 // ==================== 事件处理函数 ====================
@@ -207,6 +210,17 @@ async function handleLoadSessionFile(file) {
   } catch (error) {
     ElMessage.error(error.message)
   }
+}
+
+/**
+ * 清空会话
+ */
+function handleClearSession() {
+  sessionStore._resetState()
+  // 确保 UI 反映清空的状态
+  nextTick(() => {
+    uploadAndSettingsRef.value?.clearUploadState()
+  })
 }
 </script>
 

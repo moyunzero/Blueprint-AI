@@ -15,7 +15,6 @@
     "axios": "^1.9.0",
     "browser-image-compression": "^2.0.2",
     "diff-match-patch": "^1.0.5",
-    "easymde": "^2.20.0",
     "element-plus": "^2.7.7",
     "highlight.js": "^11.11.1",
     "js-tiktoken": "^1.0.20",
@@ -25,7 +24,6 @@
     "pinia": "^2.1.7",
     "tesseract.js": "^6.0.1",
     "vue": "^3.4.21",
-    "vue-easymde": "^2.0.0",
     "vue-router": "^4.3.3"
   },
   "devDependencies": {

@@ -2,26 +2,29 @@ import OpenAI from 'openai';
 import { getInitialGenerationSystemPrompt } from '@/prompts/initialGenerationPrompt.js';
 
 // ==================== API 配置与初始化 ====================
-const API_KEY = process.env.VUE_APP_INITIAL_GEN_API_KEY;
-const BASE_URL = process.env.VUE_APP_INITIAL_GEN_BASE_URL;
+// 前端现在只使用代理路径和模型配置
+const PROXY_PATH = process.env.VUE_APP_API_PROXY_PATH;
 const MODEL = process.env.VUE_APP_INITIAL_GEN_MODEL || "gpt-4.1";
 const MAX_TOKENS = parseInt(process.env.VUE_APP_INITIAL_GEN_MAX_TOKENS) || 20000;
 
 let initialGenClient = null;
 let initializationError = null;
 
-// 初始化 OpenAI 客户端，支持浏览器直连
-if (!API_KEY || !BASE_URL) {
-  initializationError = 'Initial Generation API Key or Base URL is not configured. Please set VUE_APP_INITIAL_GEN_API_KEY and VUE_APP_INITIAL_GEN_BASE_URL in your .env file.';
+// 初始化 OpenAI 客户端，指向我们的内部代理
+if (!PROXY_PATH) {
+  initializationError = 'API proxy path is not configured. Please set VUE_APP_API_PROXY_PATH in your .env file.';
   console.warn(initializationError);
 } else {
   try {
+    // API Key 不再需要，因为代理会处理它
+    // 在本地开发环境中，使用代理的基础URL（不包含/chat/completions）
+    const baseURL = window.location.origin;
     initialGenClient = new OpenAI({
-      apiKey: API_KEY,
-      baseURL: BASE_URL,
-      dangerouslyAllowBrowser: true
+      apiKey: 'not-needed-for-proxy', // 任意字符串，因为会被代理覆盖
+      baseURL: baseURL, // 使用基础URL，让OpenAI SDK自动添加路径
+      dangerouslyAllowBrowser: true // 仍然需要，因为是在浏览器环境
     });
-    console.log('Initial Generation API client initialized successfully');
+    console.log('Initial Generation API client initialized for proxy successfully');
   } catch (error) {
     initializationError = `Failed to initialize Initial Generation API client: ${error.message}`;
     console.error(initializationError, error);
@@ -77,6 +80,7 @@ export async function generatePrompt(base64Image, applicationType, temperature =
     ];
     // 调用 OpenAI API，返回流式响应
     try {
+      // 直接调用API，baseURL已经包含了代理路径
       const stream = await initialGenClient.chat.completions.create({
         model: MODEL,
         messages: messages,

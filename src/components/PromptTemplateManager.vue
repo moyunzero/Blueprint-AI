@@ -82,12 +82,11 @@
           <el-input type="textarea" :rows="2" v-model="currentTemplate.description" placeholder="模板简要描述"></el-input>
         </el-form-item>
         <el-form-item label="内容" prop="content">
-          <el-input
-            v-model="currentTemplate.content"
-            type="textarea"
-            :rows="15"
-            placeholder="在此处输入 Prompt 模板内容（支持 Markdown 格式）..."
-            ref="mdeEditorRef"
+          <QuillEditor
+            v-model:content="currentTemplate.content"
+            theme="snow"
+            toolbar="full"
+            content-type="html"
             class="template-editor"
           />
         </el-form-item>
@@ -127,6 +126,8 @@ import { ref, reactive, onMounted, nextTick } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Collection, Plus, Upload } from '@element-plus/icons-vue';
 import { usePromptTemplateStore } from '@/stores/promptTemplateStore';
+import { QuillEditor } from '@vueup/vue-quill';
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
 // ===== 状态管理 =====
 const templateStore = usePromptTemplateStore();
@@ -151,7 +152,6 @@ const formRules = {
 // ===== 模板引用 =====
 const importFileInput = ref(null);
 const templateFormRef = ref(null);
-const mdeEditorRef = ref(null);
 
 // ===== 生命周期钩子 =====
 onMounted(() => {
@@ -409,23 +409,29 @@ function handleFormClose() {
 }
 
 .template-editor {
-  border-radius: var(--border-radius-lg);
-  transition: all var(--transition-base);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    height: 350px;
+    display: flex;
+    flex-direction: column;
 }
-.template-editor:focus-within {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 1px var(--color-primary-glow);
+
+.template-editor :deep(.ql-toolbar) {
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    border-bottom: 1px solid var(--color-border) !important;
 }
-.template-editor :deep(.el-textarea__inner) {
-    border-radius: var(--border-radius-lg);
-    font-family: var(--font-family);
+
+.template-editor :deep(.ql-container) {
+    flex-grow: 1;
+    overflow-y: auto;
     font-size: 14px;
-    line-height: 1.6;
-    padding: var(--spacing-md);
-    min-height: 300px;
-    background-color: var(--color-bg-dark);
-    border: 1px solid var(--color-bg-light);
-    color: var(--color-text-primary);
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+}
+
+.template-editor :deep(.ql-editor) {
+    min-height: 250px;
 }
 
 /* ===== 响应式样式 ===== */
