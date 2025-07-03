@@ -1,7 +1,31 @@
 {
   "name": "blueprint-ai-vue",
-  "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "AI-powered tool that transforms UI designs into structured development blueprints. Convert any design image to actionable frontend development plans with intelligent analysis and conversational refinement.",
+  "keywords": [
+    "ai",
+    "ui-to-code",
+    "design-to-code",
+    "frontend",
+    "vue3",
+    "openai",
+    "image-analysis",
+    "development-blueprint",
+    "ui-analysis",
+    "code-generation",
+    "design-tools",
+    "developer-tools"
+  ],
+  "homepage": "https://github.com/moyunzero/blueprint-ai-vue#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moyunzero/blueprint-ai-vue.git"
+  },
+  "bugs": {
+    "url": "https://github.com/moyunzero/blueprint-ai-vue/issues"
+  },
+  "license": "MIT",
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "vite",

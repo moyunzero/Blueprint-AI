@@ -9,17 +9,32 @@
   </p>
   
   <p align="center">
-    <a href="https://github.com/your-username/blueprint-ai-vue/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/your-username/blueprint-ai-vue?style=flat-square" alt="License">
+    <a href="https://github.com/moyunzero/blueprint-ai-vue/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/moyunzero/blueprint-ai-vue?style=flat-square" alt="License">
     </a>
-    <a href="https://github.com/your-username/blueprint-ai-vue/issues">
-      <img src="https://img.shields.io/github/issues/your-username/blueprint-ai-vue?style=flat-square" alt="GitHub issues">
+    <a href="https://github.com/moyunzero/blueprint-ai-vue/issues">
+      <img src="https://img.shields.io/github/issues/moyunzero/blueprint-ai-vue?style=flat-square" alt="GitHub issues">
+    </a>
+    <a href="https://github.com/moyunzero/blueprint-ai-vue/stargazers">
+      <img src="https://img.shields.io/github/stars/moyunzero/blueprint-ai-vue?style=flat-square" alt="GitHub stars">
+    </a>
+    <a href="https://github.com/moyunzero/blueprint-ai-vue/network/members">
+      <img src="https://img.shields.io/github/forks/moyunzero/blueprint-ai-vue?style=flat-square" alt="GitHub forks">
     </a>
     <a href="#">
       <img src="https://img.shields.io/badge/vue.js-3.x-green?style=flat-square" alt="Vue.js">
     </a>
     <a href="#">
       <img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat-square" alt="Contributions welcome">
+    </a>
+    <a href="https://github.com/moyunzero/blueprint-ai-vue/releases">
+      <img src="https://img.shields.io/github/v/release/moyunzero/blueprint-ai-vue?style=flat-square" alt="Latest Release">
+    </a>
+    <a href="https://github.com/moyunzero/blueprint-ai-vue/commits/main">
+      <img src="https://img.shields.io/github/last-commit/moyunzero/blueprint-ai-vue?style=flat-square" alt="Last Commit">
+    </a>
+    <a href="https://github.com/moyunzero/blueprint-ai-vue">
+      <img src="https://img.shields.io/github/languages/top/moyunzero/blueprint-ai-vue?style=flat-square" alt="Top Language">
     </a>
   </p>
 </div>
@@ -29,9 +44,6 @@
 **Blueprint AI** 不仅仅是又一个 "image-to-code" 工具。它的核心哲学是 **增强而非取代** 开发者。我们相信，最好的 AI 协作模式是让 AI 处理繁琐的视觉分析和文档撰写工作，生成一份高质量的、机器和人都易于理解的开发蓝图（Blueprint），然后让开发者在此基础上进行创造性的编码工作。
 
 这个项目旨在弥合设计师与开发者之间的鸿沟，将模糊的视觉需求转化为精确、可执行的任务清单。
-
-<!-- 在这里插入一个展示应用核心流程的 GIF 动图，会极大地提升吸引力 -->
-<!-- ![Blueprint AI Demo GIF](link-to-your-demo.gif) -->
 
 ## ✨ 核心特性
 
@@ -64,7 +76,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/blueprint-ai-vue.git
+git clone https://github.com/moyunzero/blueprint-ai-vue.git
 
 # 进入目录
 cd blueprint-ai-vue
@@ -87,16 +99,23 @@ cp .env.example .env.local
 ```env
 # .env.local
 
-# 用于从图片生成初始蓝图的 API
-VUE_APP_INITIAL_GEN_API_KEY="sk-..."
-VUE_APP_INITIAL_GEN_BASE_URL="https://api.openai.com/v1" # 或者您的代理/服务商 URL
-VUE_APP_INITIAL_GEN_MODEL="gpt-4o" # 推荐使用具备强大视觉能力的模型
+# --- API 代理配置 ---
+# Vercel Edge Function 会使用这个密钥，它不会暴露在前端
+AI_PROXY_API_KEY="YOUR_API_KEY_HERE"
 
-# 用于对话优化和校验蓝图的 API
-# 可以与初始生成使用相同的配置
-VUE_APP_REFINEMENT_API_KEY="sk-..."
-VUE_APP_REFINEMENT_BASE_URL="https://api.openai.com/v1"
-VUE_APP_REFINEMENT_MODEL="gpt-4-turbo"
+# 代理的目标 URL，前端会将请求发送到这个地址
+AI_PROXY_TARGET_BASE_URL="https://openrouter.ai/api/v1"
+
+# --- 蓝图生成与优化共享配置 ---
+# 前端现在将请求发送到自己的相对路径 /api/proxy
+VUE_APP_API_PROXY_PATH="/api/proxy"
+VUE_APP_INITIAL_GEN_MODEL="gpt-4.1"
+VUE_APP_INITIAL_GEN_MAX_TOKENS="20000"
+VUE_APP_REFINEMENT_MODEL="gpt-4.1"
+
+# --- 会话管理配置 ---
+# 设置为 'true' 可禁用自动保存功能，每次重启应用将不会恢复之前的会话
+# VUE_APP_DISABLE_AUTO_SAVE="false"
 ```
 
 ### 4. 运行应用
@@ -155,7 +174,22 @@ npm run dev
 
 本项目基于 **MIT License**。详情请见 `LICENSE` 文件。
 
+## 🌟 支持项目
+
+如果这个项目对你有帮助，请考虑：
+
+- ⭐ 给项目点个星星
+- 🐛 [报告问题](https://github.com/moyunzero/blueprint-ai-vue/issues)
+- 💡 [提出功能建议](https://github.com/moyunzero/blueprint-ai-vue/issues)
+- 🔄 分享给你的朋友和同事
+- 📝 写一篇博客介绍这个工具
+
 ---
 <div align="center">
   <p>Made with ❤️ by the open-source community</p>
+  <p>
+    <a href="https://github.com/moyunzero/blueprint-ai-vue/stargazers">⭐ Star us on GitHub</a> •
+    <a href="https://github.com/moyunzero/blueprint-ai-vue/issues">🐛 Report Bug</a> •
+    <a href="https://github.com/moyunzero/blueprint-ai-vue/issues">💡 Request Feature</a>
+  </p>
 </div>
