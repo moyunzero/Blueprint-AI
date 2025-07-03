@@ -1,0 +1,35 @@
+{
+  "name": "blueprint-ai-vue",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "@techstark/opencv-js": "^4.10.0-release.1",
+    "@vueup/vue-quill": "^1.2.0",
+    "axios": "^1.9.0",
+    "browser-image-compression": "^2.0.2",
+    "diff-match-patch": "^1.0.5",
+    "easymde": "^2.20.0",
+    "element-plus": "^2.7.7",
+    "highlight.js": "^11.11.1",
+    "js-tiktoken": "^1.0.20",
+    "mammoth": "^1.9.0",
+    "marked": "^4.3.0",
+    "openai": "^4.96.0",
+    "pinia": "^2.1.7",
+    "tesseract.js": "^6.0.1",
+    "vue": "^3.4.21",
+    "vue-easymde": "^2.0.0",
+    "vue-router": "^4.3.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "vite": "^5.2.0"
+  }
+}
